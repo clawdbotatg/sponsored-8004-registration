@@ -50,7 +50,8 @@ const config: HardhatUserConfig = {
     // If the network you are looking for is not here you can add new network settings
     hardhat: {
       forking: {
-        url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
+        // Use local ETH node (faster, no rate limits) or fallback to Alchemy
+        url: process.env.FORK_URL || "http://192.168.68.62:8545",
         enabled: process.env.MAINNET_FORKING_ENABLED === "true"
       }
     },
