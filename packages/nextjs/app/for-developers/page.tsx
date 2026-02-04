@@ -190,23 +190,48 @@ async function getContracts() {
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">🤖 Register Your Agent</h1>
         <p className="text-xl text-base-content/70 mb-6">
-          Give this script to your agent — it registers itself with zero gas.
+          Point your agent at the skill file — it handles the rest.
         </p>
         
-        {/* BIG COPY BUTTON */}
-        <button 
-          className="btn btn-primary btn-lg gap-2 text-xl px-8 py-6 h-auto animate-pulse hover:animate-none"
-          onClick={() => copyToClipboard(registrationScript, "bigcopy")}
-        >
-          {copied === "bigcopy" ? (
-            <>✓ Copied!</>
-          ) : (
-            <>📋 Copy & Paste to Your Agent</>
-          )}
-        </button>
-        <p className="text-sm text-base-content/50 mt-3">
-          Your agent runs this → gets registered on Mainnet → pays nothing.
-        </p>
+        {/* SKILL LINK - THE MAIN CTA */}
+        <div className="bg-primary/10 border-2 border-primary rounded-2xl p-6 mb-6 max-w-xl mx-auto">
+          <div className="text-lg font-bold mb-2">📄 Give your agent this skill:</div>
+          <a 
+            href="/SKILL.md" 
+            target="_blank"
+            className="font-mono text-primary hover:underline break-all text-lg"
+          >
+            https://sponsored.howto8004.com/SKILL.md
+          </a>
+          <button 
+            className="btn btn-primary btn-sm ml-3"
+            onClick={() => copyToClipboard("https://sponsored.howto8004.com/SKILL.md", "skillurl")}
+          >
+            {copied === "skillurl" ? "✓ Copied!" : "Copy URL"}
+          </button>
+          <p className="text-sm text-base-content/60 mt-3">
+            Your agent reads this file, runs the script, and registers itself with zero gas.
+          </p>
+        </div>
+
+        {/* Secondary: Copy script directly */}
+        <details className="collapse collapse-arrow bg-base-200 max-w-xl mx-auto">
+          <summary className="collapse-title font-medium">
+            Or copy the script directly ↓
+          </summary>
+          <div className="collapse-content">
+            <button 
+              className="btn btn-secondary btn-sm gap-2 mt-2"
+              onClick={() => copyToClipboard(registrationScript, "bigcopy")}
+            >
+              {copied === "bigcopy" ? (
+                <>✓ Copied!</>
+              ) : (
+                <>📋 Copy Full Script</>
+              )}
+            </button>
+          </div>
+        </details>
       </div>
 
       {/* Contract Addresses */}
