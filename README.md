@@ -1,83 +1,185 @@
-# 🏗 Scaffold-ETH 2
+# 🤖 Sponsored Agent Registration
 
-<h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
-</h4>
+> **Gasless ERC-8004 agent registration powered by EIP-7702 code delegation**
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
+Register your AI agent on the ERC-8004 Identity Registry without paying gas. Sponsors cover the transaction cost while agents retain full ownership of their on-chain identity.
 
-> [!NOTE]
-> 🤖 Scaffold-ETH 2 is AI-ready! It has everything agents need to build on Ethereum. Check `.agents/`, `.claude/`, `.opencode` or `.cursor/` for more info.
+🌐 **Live:** [sponsor.clawdbotatg.eth.link](https://sponsor.clawdbotatg.eth.link)
 
-⚙️ Built using NextJS, RainbowKit, Hardhat, Wagmi, Viem, and Typescript.
+---
 
-- ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
-- 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
-- 🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
-- 🔥 **Burner Wallet & Local Faucet**: Quickly test your application with a burner wallet and local faucet.
-- 🔐 **Integration with Wallet Providers**: Connect to different wallet providers and interact with the Ethereum network.
+## ✨ Features
 
-![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
+- **🆓 Gasless for Agents** — Agents sign authorization, sponsors pay all gas fees
+- **🔐 Agent Retains Ownership** — The agent's EOA owns the ERC-8004 NFT identity token
+- **⚡ EIP-7702 Powered** — Uses code delegation for secure sponsored transactions
+- **📋 EIP-712 Signatures** — Typed structured data for clear signing intent
+- **🔄 Replay Protection** — Built-in nonce tracking prevents signature reuse
+- **🛠️ Developer Friendly** — Copy-paste code snippets to integrate in minutes
 
-## Requirements
-
-Before you begin, you need to install the following tools:
-
-- [Node (>= v20.18.3)](https://nodejs.org/en/download/)
-- Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
-- [Git](https://git-scm.com/downloads)
-
-## Quickstart
-
-To get started with Scaffold-ETH 2, follow the steps below:
-
-1. Install dependencies if it was skipped in CLI:
+## 📖 How It Works
 
 ```
-cd my-dapp-example
+┌──────────────┐     ┌─────────────────┐     ┌──────────────┐     ┌──────────────┐
+│   🤖 Agent   │ ──► │ 📤 Submit to    │ ──► │ 💰 Sponsor   │ ──► │ 🎉 Agent     │
+│   Signs      │     │    Sponsor      │     │    Pays Gas  │     │    Owns NFT  │
+│ 7702 + Intent│     │    (API)        │     │   (Type-4 tx)│     │  (ERC-8004)  │
+└──────────────┘     └─────────────────┘     └──────────────┘     └──────────────┘
+```
+
+1. **Agent signs** EIP-7702 authorization delegating to the RegistrationDelegate contract
+2. **Agent signs** EIP-712 registration intent (agentURI, deadline)
+3. **Sponsor receives** both signatures and creates a Type-4 transaction
+4. **Sponsor submits** the transaction, paying all gas fees
+5. **Agent receives** the ERC-8004 identity NFT at their address
+
+## 🔗 Live Links
+
+| Resource | Link |
+|----------|------|
+| **Live App** | [sponsor.clawdbotatg.eth.link](https://sponsor.clawdbotatg.eth.link) |
+| **RegistrationDelegate** | [0x3BFd2b74A12649a18ce2e542Fc9FB35e877b22E4](https://etherscan.io/address/0x3BFd2b74A12649a18ce2e542Fc9FB35e877b22E4) |
+| **ERC-8004 Registry** | [0x8004A169FB4a3325136EB29fA0ceB6D2e539a432](https://etherscan.io/address/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432) |
+| **8004scan** | [8004scan.com](https://8004scan.com) |
+| **ERC-8004 Spec** | [EIP-8004](https://eips.ethereum.org/EIPS/eip-8004) |
+
+## 🚀 Developer Quickstart
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) >= v20.18.3
+- [Yarn](https://yarnpkg.com/) v1 or v3+
+- [Git](https://git-scm.com/)
+
+### Clone & Install
+
+```bash
+git clone https://github.com/clawdbotatg/sponsored-8004-registration.git
+cd sponsored-8004-registration
 yarn install
 ```
 
-2. Run a local network in the first terminal:
+### Run Locally
 
-```
+```bash
+# Terminal 1: Start local Hardhat chain
 yarn chain
-```
 
-This command starts a local Ethereum network using Hardhat. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `packages/hardhat/hardhat.config.ts`.
-
-3. On a second terminal, deploy the test contract:
-
-```
+# Terminal 2: Deploy contracts
 yarn deploy
-```
 
-This command deploys a test smart contract to the local network. The contract is located in `packages/hardhat/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/hardhat/deploy` to deploy the contract to the network. You can also customize the deploy script.
-
-4. On a third terminal, start your NextJS app:
-
-```
+# Terminal 3: Start the frontend
 yarn start
 ```
 
-Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-Run smart contract test with `yarn hardhat:test`
+## 📁 Project Structure
 
-- Edit your smart contracts in `packages/hardhat/contracts`
-- Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
-- Edit your deployment scripts in `packages/hardhat/deploy`
+```
+├── packages/
+│   ├── hardhat/
+│   │   ├── contracts/
+│   │   │   ├── RegistrationDelegate.sol  # Main contract for sponsored registration
+│   │   │   ├── IAgentRegistry.sol        # ERC-8004 registry interface
+│   │   │   └── SponsorHelper.sol         # Helper utilities
+│   │   ├── deploy/
+│   │   │   └── 00_deploy_delegate.ts     # Deployment script
+│   │   └── test/                         # Contract tests
+│   │
+│   └── nextjs/
+│       ├── app/
+│       │   ├── page.tsx                  # Homepage
+│       │   ├── how-it-works/             # Educational content
+│       │   ├── for-developers/           # Integration guides
+│       │   └── sponsor/                  # Sponsor dashboard (coming soon)
+│       ├── components/                   # React components
+│       ├── contracts/                    # Auto-generated ABIs
+│       └── scaffold.config.ts            # Network configuration
+│
+├── package.json                          # Workspace root
+└── README.md
+```
 
+## 🛠️ Key Commands
 
-## Documentation
+| Command | Description |
+|---------|-------------|
+| `yarn chain` | Start local Hardhat network |
+| `yarn deploy` | Deploy contracts to current network |
+| `yarn start` | Start Next.js dev server |
+| `yarn fork` | Fork mainnet locally |
+| `yarn lint` | Lint all packages |
+| `yarn format` | Format code |
+| `yarn next:build` | Production build |
+| `yarn ipfs` | Deploy to IPFS via BuidlGuidl |
+| `yarn hardhat:test` | Run contract tests |
+| `yarn hardhat:verify` | Verify contracts on Etherscan |
 
-Visit our [docs](https://docs.scaffoldeth.io) to learn how to start building with Scaffold-ETH 2.
+### Deploy to Mainnet
 
-To know more about its features, check out our [website](https://scaffoldeth.io).
+```bash
+# Set deployer account
+yarn account:import
 
-## Contributing to Scaffold-ETH 2
+# Deploy to mainnet
+yarn deploy --network mainnet
 
-We welcome contributions to Scaffold-ETH 2!
+# Verify on Etherscan
+yarn verify --network mainnet
+```
 
-Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.
+### IPFS Deployment
+
+```bash
+# Build and deploy to IPFS
+yarn ipfs
+```
+
+## 🧰 Tech Stack
+
+- **Framework:** [Scaffold-ETH 2](https://scaffoldeth.io)
+- **Frontend:** Next.js 15, React 19, TypeScript
+- **Styling:** Tailwind CSS, DaisyUI
+- **Wallet:** RainbowKit, wagmi, viem
+- **Smart Contracts:** Solidity 0.8.20, Hardhat
+- **Standards:** ERC-8004, EIP-7702, EIP-712
+
+## 📜 Contracts
+
+### RegistrationDelegate
+
+The core contract that enables sponsored registration via EIP-7702 code delegation.
+
+**Key Functions:**
+
+```solidity
+// Full registration with EIP-712 signature verification
+function executeRegistration(
+    string calldata agentURI,
+    uint256 deadline,
+    bytes calldata signature
+) external returns (uint256 agentId);
+
+// Simple registration (7702 auth alone is trust)
+function executeSimpleRegistration(
+    string calldata agentURI
+) external returns (uint256 agentId);
+
+// Helper to compute digest for off-chain signing
+function getRegistrationDigest(
+    string calldata agentURI,
+    uint256 deadline,
+    uint256 nonce
+) external view returns (bytes32);
+```
+
+**Mainnet Deployment:** [`0x3BFd2b74A12649a18ce2e542Fc9FB35e877b22E4`](https://etherscan.io/address/0x3BFd2b74A12649a18ce2e542Fc9FB35e877b22E4)
+
+## 🤝 Contributing
+
+Contributions welcome! Please feel free to submit issues and pull requests.
+
+## 📄 License
+
+MIT
