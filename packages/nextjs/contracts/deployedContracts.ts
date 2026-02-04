@@ -3,7 +3,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   1: {
     RegistrationDelegate: {
-      address: "0x3BFd2b74A12649a18ce2e542Fc9FB35e877b22E4",
+      address: "0x77fb3D2ff6dB9dcbF1b7E0693b3c746B30499eE8",
       abi: [
         {"inputs":[{"internalType":"address","name":"_registry","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},
         {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"agent","type":"address"},{"indexed":true,"internalType":"uint256","name":"agentId","type":"uint256"},{"indexed":false,"internalType":"string","name":"agentURI","type":"string"},{"indexed":true,"internalType":"address","name":"sponsor","type":"address"}],"name":"RegistrationExecuted","type":"event"},

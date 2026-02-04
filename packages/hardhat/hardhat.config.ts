@@ -49,6 +49,7 @@ const config: HardhatUserConfig = {
     // View the networks that are pre-configured.
     // If the network you are looking for is not here you can add new network settings
     hardhat: {
+      chainId: process.env.MAINNET_FORKING_ENABLED === "true" ? 1 : 31337,
       forking: {
         // Use local ETH node (faster, no rate limits) or fallback to Alchemy
         url: process.env.FORK_URL || "http://192.168.68.62:8545",

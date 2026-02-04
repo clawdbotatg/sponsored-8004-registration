@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import "./IAgentRegistry.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 /**
  * @title RegistrationDelegate
@@ -18,7 +19,7 @@ import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
  * 4. This code executes in EOA's context, registers agent on ERC-8004
  * 5. Agent owns the NFT, sponsor paid the gas
  */
-contract RegistrationDelegate {
+contract RegistrationDelegate is IERC721Receiver {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
@@ -156,5 +157,20 @@ contract RegistrationDelegate {
         return keccak256(
             abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, structHash)
         );
+    }
+
+    /**
+     * @notice ERC721 receiver callback - required for safe mint to delegated EOA
+     * @dev When an EOA delegates to this contract via EIP-7702, the EOA has code.
+     *      ERC721's _safeMint checks if receiver has code and calls onERC721Received.
+     *      We accept all tokens from the registry.
+     */
+    function onERC721Received(
+        address /* operator */,
+        address /* from */,
+        uint256 /* tokenId */,
+        bytes calldata /* data */
+    ) external pure override returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
     }
 }

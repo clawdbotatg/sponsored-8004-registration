@@ -12,7 +12,8 @@ import { privateKeyToAccount } from "viem/accounts";
 import { mainnet } from "viem/chains";
 
 // Contract addresses
-const REGISTRATION_DELEGATE = "0x3BFd2b74A12649a18ce2e542Fc9FB35e877b22E4" as const;
+// V2 delegate with IERC721Receiver fix (deployed 2026-02-04)
+const REGISTRATION_DELEGATE = "0x77fb3D2ff6dB9dcbF1b7E0693b3c746B30499eE8" as const;
 
 // ABI for the executeRegistration function
 const executeRegistrationAbi = [
