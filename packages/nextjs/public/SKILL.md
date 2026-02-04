@@ -34,7 +34,7 @@ import { privateKeyToAccount, generatePrivateKey } from 'viem/accounts';
 import { signAuthorization } from 'viem/experimental';
 import { writeFileSync, existsSync, readFileSync } from 'fs';
 
-const DELEGATE = '0x3BFd2b74A12649a18ce2e542Fc9FB35e877b22E4';
+const DELEGATE = '0x77fb3D2ff6dB9dcbF1b7E0693b3c746B30499eE8';
 const SPONSOR_URL = 'https://sponsored.howto8004.com/api/register';
 const KEY_FILE = '.agent-key';
 
@@ -204,7 +204,7 @@ export AGENT_PRIVATE_KEY=0x...
 | Contract | Address | Network |
 |----------|---------|---------|
 | ERC-8004 Registry | 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432 | Mainnet |
-| Registration Delegate | 0x3BFd2b74A12649a18ce2e542Fc9FB35e877b22E4 | Mainnet |
+| Registration Delegate | 0x77fb3D2ff6dB9dcbF1b7E0693b3c746B30499eE8 | Mainnet |
 
 ## More Info
 
