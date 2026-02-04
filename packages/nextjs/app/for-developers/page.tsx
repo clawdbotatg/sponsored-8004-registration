@@ -26,52 +26,67 @@ const ForDevelopersPage = () => {
 
   // The main registration script that agents can copy
   const registrationScript = `// register-agent.js (ESM)
-// Give this to your agent. It registers itself on Ethereum Mainnet with zero gas.
-// Run: AGENT_PRIVATE_KEY=0x... node register-agent.js
+// ═══════════════════════════════════════════════════════════════
+// GIVE THIS TO YOUR AGENT - It registers itself with zero gas
+// ═══════════════════════════════════════════════════════════════
+//
+// SETUP - Set these two environment variables:
+//
+//   AGENT_PRIVATE_KEY  Your agent's wallet private key (0x...)
+//   AGENT_NAME         Your agent's name (e.g. "Clawd")
+//
+// RUN:
+//   AGENT_PRIVATE_KEY=0x... AGENT_NAME="My Agent" node register-agent.js
+//
+// ═══════════════════════════════════════════════════════════════
 
 import { createWalletClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import { signAuthorization } from 'viem/experimental';
 
-// Contract addresses - these update when redeployed
-const REGISTRY = '${ERC8004_REGISTRY}';
 const DELEGATE = '${delegateAddress}';
-
-// Sponsor endpoint (submit your signed auth here)
-const SPONSOR_URL = 'https://sponsor.clawdbotatg.eth.limo/register';
+const SPONSOR_URL = 'https://sponsored.howto8004.com/api/register';
 
 async function register() {
-  // Load your agent's private key from environment
+  // Check required env vars
   const privateKey = process.env.AGENT_PRIVATE_KEY;
+  const agentName = process.env.AGENT_NAME;
+
   if (!privateKey) {
-    console.error('❌ Set AGENT_PRIVATE_KEY environment variable');
+    console.error('❌ Missing AGENT_PRIVATE_KEY');
+    console.error('   Set it: export AGENT_PRIVATE_KEY=0x...');
+    process.exit(1);
+  }
+  if (!agentName) {
+    console.error('❌ Missing AGENT_NAME');
+    console.error('   Set it: export AGENT_NAME="My Agent"');
     process.exit(1);
   }
 
   const account = privateKeyToAccount(privateKey);
-  console.log('🤖 Agent address:', account.address);
+  console.log('🤖 Agent:', agentName);
+  console.log('📍 Address:', account.address);
 
-  // Create wallet client for signing
   const client = createWalletClient({
     account,
     chain: mainnet,
     transport: http(),
   });
 
-  // Step 1: Sign EIP-7702 authorization
-  // This allows the sponsor to execute code as your EOA
-  console.log('📝 Signing EIP-7702 authorization...');
+  // Generate metadata URI from agent name (simple data URI)
+  const metadata = { name: agentName, address: account.address };
+  const agentURI = 'data:application/json,' + encodeURIComponent(JSON.stringify(metadata));
+
+  // Sign EIP-7702 authorization (lets sponsor submit tx on your behalf)
+  console.log('📝 Signing authorization...');
   const authorization = await signAuthorization(client, {
     contractAddress: DELEGATE,
   });
 
-  // Step 2: Sign registration intent (EIP-712 typed data)
-  // This proves you specifically want to register, not just delegate
+  // Sign registration intent (proves you want to register with this name)
   const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600); // 1 hour
-  const agentURI = process.env.AGENT_URI || \`ipfs://your-agent-metadata\`;
-
-  console.log('📝 Signing registration intent...');
+  console.log('📝 Signing intent...');
   const intentSignature = await client.signTypedData({
     domain: {
       name: 'AgentRegistrationDelegate',
@@ -87,20 +102,19 @@ async function register() {
       ],
     },
     primaryType: 'Registration',
-    message: {
-      agentURI,
-      deadline,
-      nonce: 0n, // First registration
-    },
+    message: { agentURI, deadline, nonce: 0n },
   });
 
-  // Step 3: Submit to sponsor
+  // Submit to sponsor (they pay gas, you get registered)
   console.log('📤 Submitting to sponsor...');
   const response = await fetch(SPONSOR_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       agentAddress: account.address,
+      agentURI,
+      deadline: deadline.toString(),
+      intentSignature,
       authorization: {
         address: authorization.contractAddress,
         chainId: Number(authorization.chainId),
@@ -109,9 +123,6 @@ async function register() {
         s: authorization.s,
         yParity: authorization.yParity,
       },
-      agentURI,
-      deadline: deadline.toString(),
-      intentSignature,
     }),
   });
 
@@ -130,23 +141,34 @@ async function register() {
 register().catch(console.error);`;
 
   // Minimal TypeScript/ESM version
-  const minimalScript = `// Quick registration (TypeScript/ESM)
+  const minimalScript = `// Minimal registration
+// AGENT_PRIVATE_KEY=0x... AGENT_NAME="My Agent" npx tsx register.ts
+
 import { createWalletClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import { signAuthorization } from 'viem/experimental';
 
 const DELEGATE = '${delegateAddress}';
-const account = privateKeyToAccount(process.env.AGENT_KEY as \`0x\${string}\`);
-
+const account = privateKeyToAccount(process.env.AGENT_PRIVATE_KEY);
 const client = createWalletClient({ account, chain: mainnet, transport: http() });
-const auth = await signAuthorization(client, { contractAddress: DELEGATE });
 
-// Submit auth to sponsor endpoint
-await fetch('https://sponsor.clawdbotatg.eth.limo/register', {
-  method: 'POST',
-  body: JSON.stringify({ agentAddress: account.address, authorization: auth }),
-});`;
+const agentURI = 'data:application/json,' + encodeURIComponent(JSON.stringify({ name: process.env.AGENT_NAME }));
+const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+
+const auth = await signAuthorization(client, { contractAddress: DELEGATE });
+const intent = await client.signTypedData({
+  domain: { name: 'AgentRegistrationDelegate', version: '1', chainId: 1, verifyingContract: DELEGATE },
+  types: { Registration: [{ name: 'agentURI', type: 'string' }, { name: 'deadline', type: 'uint256' }, { name: 'nonce', type: 'uint256' }] },
+  primaryType: 'Registration',
+  message: { agentURI, deadline, nonce: 0n },
+});
+
+const res = await fetch('https://sponsored.howto8004.com/api/register', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ agentAddress: account.address, agentURI, deadline: deadline.toString(), intentSignature: intent, authorization: auth }),
+});
+console.log(await res.json());`;
 
   // Fetch contracts info snippet
   const fetchContractsSnippet = `// Fetch latest contract addresses at runtime
@@ -224,14 +246,14 @@ async function getContracts() {
         
         <div className="steps steps-vertical md:steps-horizontal w-full mb-6">
           <div className="step step-primary">Install viem</div>
-          <div className="step step-primary">Copy the script</div>
-          <div className="step step-primary">Set your key</div>
-          <div className="step step-primary">Run it</div>
+          <div className="step step-primary">Copy script</div>
+          <div className="step step-primary">Set 2 vars</div>
+          <div className="step step-primary">Run</div>
         </div>
 
         <div className="bg-base-100 rounded-lg p-4 mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="font-mono text-sm">1. Install dependencies</span>
+            <span className="font-mono text-sm">1. Install viem</span>
             <button 
               className="btn btn-xs btn-ghost"
               onClick={() => copyToClipboard("npm install viem", "install")}
@@ -246,7 +268,7 @@ async function getContracts() {
 
         <div className="bg-base-100 rounded-lg p-4 mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="font-mono text-sm">2. Set environment variable</span>
+            <span className="font-mono text-sm">2. Set your agent&apos;s private key</span>
             <button 
               className="btn btn-xs btn-ghost"
               onClick={() => copyToClipboard("export AGENT_PRIVATE_KEY=0x...", "env")}
@@ -255,11 +277,26 @@ async function getContracts() {
             </button>
           </div>
           <pre className="bg-base-300 rounded p-2 text-sm overflow-x-auto">
-            export AGENT_PRIVATE_KEY=0x...your_private_key...
+            export AGENT_PRIVATE_KEY=0x...
           </pre>
           <p className="text-xs text-warning mt-2">
-            ⚠️ Never commit private keys to git or share them publicly
+            ⚠️ Never commit private keys to git
           </p>
+        </div>
+
+        <div className="bg-base-100 rounded-lg p-4 mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="font-mono text-sm">3. Set your agent&apos;s name</span>
+            <button 
+              className="btn btn-xs btn-ghost"
+              onClick={() => copyToClipboard('export AGENT_NAME="My Agent"', "name")}
+            >
+              {copied === "name" ? "✓ Copied" : "Copy"}
+            </button>
+          </div>
+          <pre className="bg-base-300 rounded p-2 text-sm overflow-x-auto">
+            export AGENT_NAME=&quot;My Agent&quot;
+          </pre>
         </div>
 
         <div className="bg-base-100 rounded-lg p-4">
