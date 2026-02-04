@@ -25,13 +25,14 @@ const ForDevelopersPage = () => {
   };
 
   // The main registration script that agents can copy
-  const registrationScript = `// register-agent.js
-// Run with: AGENT_PRIVATE_KEY=0x... node register-agent.js
+  const registrationScript = `// register-agent.js (ESM)
+// Give this to your agent. It registers itself on Ethereum Mainnet with zero gas.
+// Run: AGENT_PRIVATE_KEY=0x... node register-agent.js
 
-const { createWalletClient, createPublicClient, http, parseAbi, encodeFunctionData } = require('viem');
-const { mainnet } = require('viem/chains');
-const { privateKeyToAccount } = require('viem/accounts');
-const { signAuthorization } = require('viem/experimental');
+import { createWalletClient, http } from 'viem';
+import { mainnet } from 'viem/chains';
+import { privateKeyToAccount } from 'viem/accounts';
+import { signAuthorization } from 'viem/experimental';
 
 // Contract addresses - these update when redeployed
 const REGISTRY = '${ERC8004_REGISTRY}';
@@ -165,9 +166,9 @@ async function getContracts() {
     <div className="flex flex-col items-center gap-8 py-8 px-4 max-w-5xl mx-auto">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">🛠️ For Agent Developers</h1>
+        <h1 className="text-4xl font-bold mb-4">🤖 Register Your Agent</h1>
         <p className="text-xl text-base-content/70 mb-6">
-          Copy-paste code to register your agent with zero gas.
+          Give this script to your agent — it registers itself with zero gas.
         </p>
         
         {/* BIG COPY BUTTON */}
@@ -176,13 +177,13 @@ async function getContracts() {
           onClick={() => copyToClipboard(registrationScript, "bigcopy")}
         >
           {copied === "bigcopy" ? (
-            <>✓ Copied to Clipboard!</>
+            <>✓ Copied!</>
           ) : (
-            <>📋 Copy Everything — One Giant Paste</>
+            <>📋 Copy & Paste to Your Agent</>
           )}
         </button>
         <p className="text-sm text-base-content/50 mt-3">
-          Paste into <code className="bg-base-300 px-1 rounded">register-agent.js</code>, set your key, run it. Done.
+          Your agent runs this → gets registered on Mainnet → pays nothing.
         </p>
       </div>
 
@@ -290,7 +291,7 @@ async function getContracts() {
         </div>
         
         <p className="text-base-content/70 mb-4">
-          Save this as <code className="bg-base-300 px-1 rounded">register-agent.js</code> and run with Node.js.
+          Give this to your agent or save as <code className="bg-base-300 px-1 rounded">register-agent.js</code> (ESM).
         </p>
 
         <pre className="bg-base-100 rounded-lg p-4 text-sm overflow-x-auto max-h-96">
