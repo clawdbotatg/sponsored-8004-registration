@@ -9,14 +9,25 @@ You sign two messages, a sponsor pays the gas, and you get an on-chain identity 
 ## Prerequisites
 
 - Node.js 18+
-- A name for yourself
 
 ## Step 1: Create the Registration Script
 
-Save this as `register.mjs`:
+Save this as `register.mjs` and **fill in your details at the top**:
 
 ```javascript
 // register.mjs - ERC-8004 Agent Registration
+// ════════════════════════════════════════════════════════════════════
+// 👇 FILL THESE IN - This is your on-chain identity! 👇
+// ════════════════════════════════════════════════════════════════════
+
+const AGENT_NAME = "YOUR_AGENT_NAME";           // <-- Your name (required)
+const AGENT_DESCRIPTION = "What I do";          // <-- Brief description  
+const AGENT_URL = "";                           // <-- Your website/repo (optional)
+
+// ════════════════════════════════════════════════════════════════════
+// 👆 That's it! Everything below runs automatically. 👆
+// ════════════════════════════════════════════════════════════════════
+
 import { createWalletClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
 import { privateKeyToAccount, generatePrivateKey } from 'viem/accounts';
@@ -25,7 +36,20 @@ import { writeFileSync, existsSync, readFileSync } from 'fs';
 
 const DELEGATE = '0x3BFd2b74A12649a18ce2e542Fc9FB35e877b22E4';
 const SPONSOR_URL = 'https://sponsored.howto8004.com/api/register';
-const KEY_FILE = '.agent-key'; // Local storage for your key
+const KEY_FILE = '.agent-key';
+
+// Validate user filled in the required field
+if (AGENT_NAME === "YOUR_AGENT_NAME" || !AGENT_NAME) {
+  console.error('');
+  console.error('❌ You need to fill in your agent details!');
+  console.error('');
+  console.error('   Open register.mjs and edit the top section:');
+  console.error('');
+  console.error('   const AGENT_NAME = "Your Actual Name";');
+  console.error('   const AGENT_DESCRIPTION = "What you do";');
+  console.error('');
+  process.exit(1);
+}
 
 async function getOrCreateKey() {
   // 1. Check environment variable first
@@ -41,41 +65,33 @@ async function getOrCreateKey() {
   }
 
   // 3. Generate a new key
-  console.log('🔑 No key found. Generating a new wallet for you...');
+  console.log('🔑 No wallet found. Generating one for you...');
   const newKey = generatePrivateKey();
   
-  // Save it locally
-  writeFileSync(KEY_FILE, newKey, { mode: 0o600 }); // Only owner can read
-  console.log('💾 Saved new key to', KEY_FILE);
+  writeFileSync(KEY_FILE, newKey, { mode: 0o600 });
+  console.log('💾 Saved to', KEY_FILE);
   console.log('');
-  console.log('⚠️  IMPORTANT: Back up your key! Add this to your environment:');
+  console.log('📋 To use this wallet elsewhere, save this key:');
   console.log('');
   console.log(`   export AGENT_PRIVATE_KEY=${newKey}`);
-  console.log('');
-  console.log('   Add that line to your .bashrc, .zshrc, or .env file.');
-  console.log('   The local .agent-key file works too, but env vars are safer.');
   console.log('');
   
   return newKey;
 }
 
 async function register() {
-  // Get or create private key
-  const privateKey = await getOrCreateKey();
-  
-  // Get agent name
-  const agentName = process.env.AGENT_NAME;
-  if (!agentName) {
-    console.error('❌ Missing AGENT_NAME');
-    console.error('');
-    console.error('   Set your name: export AGENT_NAME="Your Agent Name"');
-    console.error('');
-    process.exit(1);
-  }
-
-  const account = privateKeyToAccount(privateKey);
   console.log('');
-  console.log('🤖 Agent:', agentName);
+  console.log('═══════════════════════════════════════════');
+  console.log('  ERC-8004 Agent Registration');
+  console.log('═══════════════════════════════════════════');
+  console.log('');
+
+  const privateKey = await getOrCreateKey();
+  const account = privateKeyToAccount(privateKey);
+  
+  console.log('🤖 Name:', AGENT_NAME);
+  console.log('📝 Description:', AGENT_DESCRIPTION);
+  if (AGENT_URL) console.log('🔗 URL:', AGENT_URL);
   console.log('📍 Address:', account.address);
   console.log('');
 
@@ -85,19 +101,23 @@ async function register() {
     transport: http(),
   });
 
-  // Generate metadata from your name
-  const metadata = { name: agentName, address: account.address };
+  // Build metadata from your details
+  const metadata = {
+    name: AGENT_NAME,
+    description: AGENT_DESCRIPTION,
+    address: account.address,
+  };
+  if (AGENT_URL) metadata.url = AGENT_URL;
+  
   const agentURI = 'data:application/json,' + encodeURIComponent(JSON.stringify(metadata));
 
-  // Sign EIP-7702 authorization
   console.log('📝 Signing authorization...');
   const authorization = await signAuthorization(client, {
     contractAddress: DELEGATE,
   });
 
-  // Sign registration intent
   const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
-  console.log('📝 Signing intent...');
+  console.log('📝 Signing registration intent...');
   const intentSignature = await client.signTypedData({
     domain: {
       name: 'AgentRegistrationDelegate',
@@ -116,8 +136,7 @@ async function register() {
     message: { agentURI, deadline, nonce: 0n },
   });
 
-  // Submit to sponsor
-  console.log('📤 Submitting to sponsor...');
+  console.log('📤 Submitting to sponsor (they pay the gas)...');
   const response = await fetch(SPONSOR_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -139,66 +158,46 @@ async function register() {
 
   const result = await response.json();
 
+  console.log('');
   if (result.success) {
+    console.log('═══════════════════════════════════════════');
+    console.log('  🎉 SUCCESS - You are registered!');
+    console.log('═══════════════════════════════════════════');
     console.log('');
-    console.log('🎉 Registration successful!');
-    console.log('   Transaction:', result.txHash);
-    console.log('   Agent ID:', result.agentId);
-    console.log('   View: https://etherscan.io/tx/' + result.txHash);
+    console.log('  Agent ID:', result.agentId);
+    console.log('  Transaction:', result.txHash);
+    console.log('  View: https://etherscan.io/tx/' + result.txHash);
     console.log('');
-    console.log('✅ You are now registered on ERC-8004!');
   } else {
-    console.error('❌ Failed:', result.error);
+    console.error('❌ Registration failed:', result.error);
   }
 }
 
 register().catch(console.error);
 ```
 
-## Step 2: Install Dependencies
+## Step 2: Install & Run
 
 ```bash
 npm install viem
+node register.mjs
 ```
 
-## Step 3: Run It
+## What Happens
+
+1. **First run**: Script generates a wallet for you, saves it locally
+2. **Signs two messages**: Authorization + intent (proves you want to register)
+3. **Sends to sponsor**: They submit the transaction and pay gas
+4. **You're registered**: Get an ERC-721 identity token on mainnet
+
+## Key Storage
+
+Your private key is stored in `.agent-key` (local file). To use it elsewhere:
 
 ```bash
-# Set your name and run
-AGENT_NAME="Your Agent Name" node register.mjs
+# Add to your shell config (.bashrc, .zshrc, etc.)
+export AGENT_PRIVATE_KEY=0x...
 ```
-
-That's it! The script will:
-1. Check for an existing key (env var or local file)
-2. Generate a new wallet if you don't have one
-3. Tell you how to save it for next time
-4. Register you on ERC-8004
-
-## Key Storage Options
-
-The script checks for your key in this order:
-
-1. **Environment variable** (recommended): `export AGENT_PRIVATE_KEY=0x...`
-2. **Local file**: `.agent-key` in the current directory
-
-If neither exists, it generates a new key and saves it to `.agent-key`.
-
-### To persist your key permanently:
-
-Add to your shell config (`.bashrc`, `.zshrc`, etc.):
-```bash
-export AGENT_PRIVATE_KEY=0x...your-key...
-export AGENT_NAME="Your Agent Name"
-```
-
-Then just run `node register.mjs` anytime.
-
-## What You're Signing
-
-1. **EIP-7702 Authorization**: Lets the sponsor submit a transaction on your behalf (one-time use, nonce-bound)
-2. **EIP-712 Intent**: Proves you specifically want to register with this name (expires in 1 hour)
-
-Your private key never leaves your machine — only signatures are sent.
 
 ## Contracts
 
@@ -211,4 +210,3 @@ Your private key never leaves your machine — only signatures are sent.
 
 - Site: https://sponsored.howto8004.com
 - ERC-8004 Spec: https://eips.ethereum.org/EIPS/eip-8004
-- Sponsor Wallet Status: https://sponsored.howto8004.com/sponsor
